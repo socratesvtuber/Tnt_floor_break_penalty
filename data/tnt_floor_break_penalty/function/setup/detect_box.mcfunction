@@ -61,12 +61,12 @@ execute if score #probe_ok penalty matches 1 run execute store result score #z1 
 execute unless score #probe_ok penalty matches 1 run tellraw @s [{"text":"[TNT床HP] 壁が見つかりませんでした。埋め立て用ボックスの内部(床の上)で実行してください","color":"red"}]
 execute unless score #probe_ok penalty matches 1 run return 0
 
-# 高さ(Y方向)は引数指定。y1=足元の高さ、y2=y1+height-1
+# 高さ(Y方向)は引数指定。heightは「床の上に積める空間の高さ」なので、
+# y1=足元(床)の高さ、y2=y1+height(床1層 + heightで指定した層数、を合計した最上層)
 $scoreboard players set #h penalty $(height)
 scoreboard players operation #y1 penalty = #origin_y penalty
 scoreboard players operation #y2 penalty = #y1 penalty
 scoreboard players operation #y2 penalty += #h penalty
-scoreboard players remove #y2 penalty 1
 
 # 検出した範囲をstorageへ保存
 execute store result storage tnt_floor_break_penalty:box x1 int 1 run scoreboard players get #x1 penalty
@@ -80,4 +80,4 @@ execute store result storage tnt_floor_break_penalty:box z2 int 1 run scoreboard
 function tnt_floor_break_penalty:setup/calc_max_space
 function tnt_floor_break_penalty:setup/record_baseline
 
-tellraw @s [{"text":"[TNT床HP] 既存の箱を検出しました。範囲: x","color":"green"},{"score":{"name":"#x1","objective":"penalty"}},{"text":"〜"},{"score":{"name":"#x2","objective":"penalty"}},{"text":" / z"},{"score":{"name":"#z1","objective":"penalty"}},{"text":"〜"},{"score":{"name":"#z2","objective":"penalty"}},{"text":" / 高さ"},{"score":{"name":"#h","objective":"penalty"}},{"text":"（合計 "},{"score":{"name":"#max_space","objective":"penalty"},"color":"gold"},{"text":" マス）。監視を開始しました","color":"green"}]
+tellraw @s [{"text":"[TNT床HP] 既存の箱を検出しました。範囲: x","color":"green"},{"score":{"name":"#x1","objective":"penalty"}},{"text":"〜"},{"score":{"name":"#x2","objective":"penalty"}},{"text":" / z"},{"score":{"name":"#z1","objective":"penalty"}},{"text":"〜"},{"score":{"name":"#z2","objective":"penalty"}},{"text":" / y"},{"score":{"name":"#y1","objective":"penalty"}},{"text":"(床)〜"},{"score":{"name":"#y2","objective":"penalty"}},{"text":"(積める高さ"},{"score":{"name":"#h","objective":"penalty"}},{"text":"分の最上層)（合計 "},{"score":{"name":"#max_space","objective":"penalty"},"color":"gold"},{"text":" マス）。監視を開始しました","color":"green"}]
