@@ -1,7 +1,7 @@
 # 表示ON/OFF状態を反映（ONの間は毎tick再表示し、新規参加者にも見えるようにする）
 execute if score #hp_gauge_visible penalty matches 1 run bossbar set minecraft:hp_gauge players @a
 
-# 残りHP = しきい値 − 壊れたブロック数（0未満は0にクランプ）
+# 残りHP = しきい値 − TNT爆発回数（0未満は0にクランプ）
 scoreboard players operation #remaining penalty = #max_hits penalty
 scoreboard players operation #remaining penalty -= #broken penalty
 execute if score #remaining penalty matches ..-1 run scoreboard players set #remaining penalty 0
@@ -20,7 +20,7 @@ execute if score #percent penalty matches 34..66 run bossbar set minecraft:hp_ga
 execute if score #percent penalty matches ..33 run bossbar set minecraft:hp_gauge color red
 
 # 表示テキストを更新
-bossbar set minecraft:hp_gauge name [{"text":"床HP: "},{"score":{"name":"#percent","objective":"penalty"},"color":"gold"},{"text":"% （壊れた数: "},{"score":{"name":"#broken","objective":"penalty"}},{"text":" / "},{"score":{"name":"#max_hits","objective":"penalty"}},{"text":"）"}]
+bossbar set minecraft:hp_gauge name [{"text":"床HP: "},{"score":{"name":"#percent","objective":"penalty"},"color":"gold"},{"text":"% （爆発回数: "},{"score":{"name":"#broken","objective":"penalty"}},{"text":" / "},{"score":{"name":"#max_hits","objective":"penalty"}},{"text":"）"}]
 
 # HPが0になった瞬間に一度だけ発火
 execute if score #percent penalty matches 0 if score #triggered penalty matches 0 run function tnt_floor_break_penalty:tick/on_zero

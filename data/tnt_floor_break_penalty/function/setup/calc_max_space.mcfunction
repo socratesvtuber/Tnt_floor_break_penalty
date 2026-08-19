@@ -21,14 +21,6 @@ scoreboard players operation #max_space penalty = #dx penalty
 scoreboard players operation #max_space penalty *= #dy penalty
 scoreboard players operation #max_space penalty *= #dz penalty
 
-# 床(y1の1層だけ)を「床HPゲージ」用の範囲として保存
-execute store result storage tnt_floor_break_penalty:floor_region x1 int 1 run scoreboard players get #x1 penalty
-execute store result storage tnt_floor_break_penalty:floor_region z1 int 1 run scoreboard players get #z1 penalty
-execute store result storage tnt_floor_break_penalty:floor_region x2 int 1 run scoreboard players get #x2 penalty
-execute store result storage tnt_floor_break_penalty:floor_region z2 int 1 run scoreboard players get #z2 penalty
-execute store result storage tnt_floor_break_penalty:floor_region y1 int 1 run scoreboard players get #y1 penalty
-execute store result storage tnt_floor_break_penalty:floor_region y2 int 1 run scoreboard players get #y1 penalty
-
 # 床を除いた内部空間(y1+1〜y2)を「ブロックゲージ」用の範囲として保存
 # （高さ1の箱は内部空間が無いので、#interior_spaceは0になる＝ブロックゲージは対象外扱い）
 scoreboard players operation #interior_h penalty = #dy penalty
@@ -47,5 +39,18 @@ scoreboard players operation #interior_y1 penalty = #y1 penalty
 scoreboard players add #interior_y1 penalty 1
 execute store result storage tnt_floor_break_penalty:interior_region y1 int 1 run scoreboard players get #interior_y1 penalty
 execute store result storage tnt_floor_break_penalty:interior_region y2 int 1 run scoreboard players get #y2 penalty
+
+# 箱全体(x1,y1,z1〜x2,y2,z2)をTNT検知(爆発回数カウント)のセレクタ範囲として保存
+# （dx/dy/dzはセレクタ用に「x2-x1」等の差分そのものにする。create_box経由でも同じ値になる想定だが、
+# 　detect_box経由でも必ず正しい値になるよう、ここで毎回上書きする）
+scoreboard players operation #sel_dx penalty = #dx penalty
+scoreboard players remove #sel_dx penalty 1
+scoreboard players operation #sel_dy penalty = #dy penalty
+scoreboard players remove #sel_dy penalty 1
+scoreboard players operation #sel_dz penalty = #dz penalty
+scoreboard players remove #sel_dz penalty 1
+execute store result storage tnt_floor_break_penalty:box dx int 1 run scoreboard players get #sel_dx penalty
+execute store result storage tnt_floor_break_penalty:box dy int 1 run scoreboard players get #sel_dy penalty
+execute store result storage tnt_floor_break_penalty:box dz int 1 run scoreboard players get #sel_dz penalty
 
 scoreboard players set #configured penalty 1

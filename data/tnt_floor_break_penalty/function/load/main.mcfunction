@@ -25,11 +25,14 @@ scoreboard players set #y2 penalty 0
 scoreboard players set #z2 penalty 0
 scoreboard players set #max_space penalty 1
 
-# HP計算用（壊れたブロック数としきい値。しきい値はデフォルト50個で、setup/set_max_hitsで変更可能）
-scoreboard players set #initial_air penalty 0
+# HP計算用（範囲内でのTNT爆発回数としきい値。しきい値はデフォルト50回で、setup/set_max_hitsで変更可能）
 scoreboard players set #broken penalty 0
 scoreboard players set #max_hits penalty 50
 scoreboard players set #triggered penalty 0
+
+# TNT爆発検知用（範囲内で追跡中のTNTエンティティ数）
+scoreboard players set #tnt_current penalty 0
+scoreboard players set #tnt_prev penalty 0
 
 # ブロックゲージ計算用（床を除いた内部空間で、埋まっているブロック数の割合＝埋め立て度）
 scoreboard players set #filled penalty 0

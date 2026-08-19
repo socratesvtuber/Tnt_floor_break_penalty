@@ -1,8 +1,8 @@
-# 床(1層)の空気ブロック数を「基準値」として記録する
-# （以降、これより増えた分 = TNTで壊れたブロック数として扱う。範囲設定時、床は壊れていない状態を想定）
-function tnt_floor_break_penalty:internal/count_air with storage tnt_floor_break_penalty:floor_region
-scoreboard players operation #initial_air penalty = #air penalty
-
+# TNT爆発回数のカウントをリセットする
+# （以前この範囲を追跡していたTNTのタグが残っていれば外し、まっさらな状態から数え直す）
+tag @e[type=minecraft:tnt,tag=tfp_tracked] remove tfp_tracked
+scoreboard players set #tnt_current penalty 0
+scoreboard players set #tnt_prev penalty 0
 scoreboard players set #broken penalty 0
 scoreboard players set #triggered penalty 0
 
