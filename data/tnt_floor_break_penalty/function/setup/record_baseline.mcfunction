@@ -9,7 +9,8 @@ scoreboard players set #triggered penalty 0
 
 function tnt_floor_break_penalty:tick/update_gauge
 
-# ブロックゲージ(箱全体の埋まり具合)は基準値を持たず毎回その場の状態を表示するので、
+# ブロックゲージ(床を除いた内部空間の埋まり具合)は基準値を持たず毎回その場の状態を表示するので、
 # ここでは現在の空気ブロック数を数えて即座に反映するだけでよい
-function tnt_floor_break_penalty:internal/count_air with storage tnt_floor_break_penalty:box
-function tnt_floor_break_penalty:tick/update_block_gauge
+execute if score #interior_space penalty matches 1.. run function tnt_floor_break_penalty:internal/count_air with storage tnt_floor_break_penalty:interior_region
+execute if score #interior_space penalty matches 1.. run function tnt_floor_break_penalty:tick/update_block_gauge
+execute if score #interior_space penalty matches ..0 run function tnt_floor_break_penalty:tick/update_block_gauge_na
