@@ -31,9 +31,10 @@ scoreboard players set #broken penalty 0
 scoreboard players set #max_hits penalty 50
 scoreboard players set #triggered penalty 0
 
-# ブロックゲージ計算用（範囲内で埋まっている＝壊れていないブロック数の割合）
+# ブロックゲージ計算用（床を除いた内部空間で、埋まっているブロック数の割合＝埋め立て度）
 scoreboard players set #filled penalty 0
 scoreboard players set #block_percent penalty 0
+scoreboard players set #interior_space penalty 0
 
 # 各ゲージの表示ON/OFF状態（0=非表示 / 1=表示。デフォルトは両方表示）
 scoreboard players set #hp_gauge_visible penalty 1

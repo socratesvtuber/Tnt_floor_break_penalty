@@ -1,14 +1,17 @@
 # 範囲が未設定の間は監視しない
 execute if score #configured penalty matches 0 run return 0
 
-# 1. 範囲内の空気ブロック数を数える
-function tnt_floor_break_penalty:internal/count_air with storage tnt_floor_break_penalty:box
+# 1. 床(1層)の空気ブロック数を数える → 床HPゲージを更新
+function tnt_floor_break_penalty:internal/count_air with storage tnt_floor_break_penalty:floor_region
 
-# 2. 基準値との差分 = 壊れたブロック数（ブロックは増えない想定なので負値は0にクランプ）
 scoreboard players operation #broken penalty = #air penalty
 scoreboard players operation #broken penalty -= #initial_air penalty
 execute if score #broken penalty matches ..-1 run scoreboard players set #broken penalty 0
 
-# 3. 床HPゲージ・ブロックゲージそれぞれの計算・表示を更新
 function tnt_floor_break_penalty:tick/update_gauge
-function tnt_floor_break_penalty:tick/update_block_gauge
+
+# 2. 床を除いた内部空間の空気ブロック数を数える → ブロックゲージを更新
+# （高さ1で内部空間が無い場合はupdate_block_gauge_naで「対象外」表示にする）
+execute if score #interior_space penalty matches 1.. run function tnt_floor_break_penalty:internal/count_air with storage tnt_floor_break_penalty:interior_region
+execute if score #interior_space penalty matches 1.. run function tnt_floor_break_penalty:tick/update_block_gauge
+execute if score #interior_space penalty matches ..0 run function tnt_floor_break_penalty:tick/update_block_gauge_na
