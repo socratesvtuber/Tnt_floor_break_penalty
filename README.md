@@ -7,6 +7,7 @@
 - **床(箱)の自動生成**: コマンド1つで、実行したプレイヤーの足元を基準に指定サイズ・指定ブロックの床を自動生成し、そのまま監視範囲として設定する
 - **サイズ指定**: 横(x)・高さ(y)・縦(z)をコマンドの引数で指定
 - **素材ブロック指定**: 床を構成するブロックの種類も引数で任意に指定可能(例: `minecraft:stone`)
+- **既存の埋め立て用ボックスの自動検出**: 既に埋め立て用ボックス(4方向を壁で囲まれた箱)の内部にプレイヤーが立っている場合、コマンド1つで壁の座標を自動探索し、その範囲をブロックゲージ・床HPゲージ両方の監視範囲としてまとめてセットアップできる(新規に床を生成する`create_box`とは別の入口)
 - **床HPゲージ**: 画面上部のボスバーで%表示。100%は緑、減っていくと黄色→赤へ段階的に色が変わる(100-67%:緑 / 66-34%:黄 / 33-0%:赤)
 - **カウント方式**: 範囲内で壊れたブロック数をそのままカウント。1回のTNT爆発で複数ブロック壊れれば、その分まとめて減る
 - **しきい値**: 「何個壊れたらHP0になるか」はコマンドで指定可能(デフォルト50個)
@@ -19,6 +20,7 @@
 - `data/minecraft/tags/function/load.json` / `tick.json` — バニラのload/tickタグへの登録
 - `data/tnt_floor_break_penalty/function/load/main.mcfunction` — スコアボード・ボスバーの初期化
 - `data/tnt_floor_break_penalty/function/setup/create_box.mcfunction` — 立っている場所を起点に、指定サイズ・指定ブロックで床を自動生成し、範囲確定・基準値記録・監視開始まで行う
+- `data/tnt_floor_break_penalty/function/setup/detect_box.mcfunction` — 既存の埋め立て用ボックスの内部から東西南北へ壁を自動探索して範囲を検出し、範囲確定・基準値記録・監視開始まで行う
 - `data/tnt_floor_break_penalty/function/setup/calc_max_space.mcfunction` — 2点から範囲の合計マス数を計算する内部処理
 - `data/tnt_floor_break_penalty/function/setup/record_baseline.mcfunction` — 範囲確定時点の空気ブロック数を基準値として記録し、破壊カウント・ゲージをリセットする内部処理
 - `data/tnt_floor_break_penalty/function/setup/set_max_hits.mcfunction` — 「何個壊れたらHP0になるか」のしきい値を設定する
@@ -26,6 +28,7 @@
 - `data/tnt_floor_break_penalty/function/setup/block_gauge_show.mcfunction` / `block_gauge_hide.mcfunction` — ブロックゲージの表示ON/OFF
 - `data/tnt_floor_break_penalty/function/internal/fill_box.mcfunction` — 起点からの相対座標・指定ブロックで実際に床を塗りつぶす内部処理
 - `data/tnt_floor_break_penalty/function/internal/count_air.mcfunction` — 範囲内の空気ブロック数を数える共通処理(マクロ経由で座標を利用)
+- `data/tnt_floor_break_penalty/function/internal/probe.mcfunction` / `probe_advance.mcfunction` / `probe_hit.mcfunction` / `probe_timeout.mcfunction` — `detect_box`が使う、1方向へ1マスずつ進みながら壁(空気以外のブロック)を探す再帰処理一式
 - `data/tnt_floor_break_penalty/function/tick/main.mcfunction` — 毎tick、範囲が設定済みなら壊れたブロック数を再計算し両ゲージを更新
 - `data/tnt_floor_break_penalty/function/tick/update_gauge.mcfunction` — 残りHP%を計算し、床HPゲージの表示・色を更新
 - `data/tnt_floor_break_penalty/function/tick/update_block_gauge.mcfunction` — 範囲内の残存ブロック割合を計算し、ブロックゲージの表示を更新
@@ -52,6 +55,18 @@
    → 実行したプレイヤーの足元を起点に、指定サイズ・指定ブロックで床が自動生成されます。同時に範囲が確定し、生成直後(壊れていない状態)を基準値として記録、ボスバーに「床HP: 100%」が表示され監視が始まります。
 
 4. 以降、範囲内でTNTが爆発してブロックが壊れるたびに、壊れたブロック数に応じて床HPゲージ・ブロックゲージの両方が自動で更新されます。床HPはしきい値に達すると0%になり、画面にタイトル表示とアナウンスが出ます。
+
+### 既存の埋め立て用ボックスを使う場合(create_boxの代わり)
+
+すでに壁付きの埋め立て用ボックスが建ててあり、その中にプレイヤーが立っている場合は、`create_box`の代わりに以下を実行すると、壁の座標を自動探索して範囲を検出し、ブロックゲージ・床HPゲージの両方を1コマンドでセットアップできます。
+
+```
+/function tnt_floor_break_penalty:setup/detect_box {height:5}
+```
+
+- 探索は、実行したプレイヤーの足元の高さで東西南北へ1マスずつ進み、最初に「空気以外のブロック」に当たった場所を壁とみなす(既定では最大128マスまで探索。それでも壁が見つからない場合は失敗としてメッセージを表示し中断する)
+- 天井が無い(上部が開放された)箱を想定しているため、高さ(Y方向)だけは自動検出できず、`height`引数で明示的に指定する必要がある(y1=足元の高さ、y2=足元+height-1)
+- 検出後は`create_box`と同様、その場でブロックゲージ・床HPゲージの両方が「現在の状態」を基準値として監視を開始する
 
 ### ゲージの表示ON/OFF
 

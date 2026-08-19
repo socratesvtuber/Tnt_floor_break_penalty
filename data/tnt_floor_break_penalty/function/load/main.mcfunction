@@ -39,5 +39,8 @@ scoreboard players set #block_percent penalty 0
 scoreboard players set #hp_gauge_visible penalty 1
 scoreboard players set #block_gauge_visible penalty 1
 
-bossbar set minecraft:hp_gauge name [{"text":"床HP: 未設定（setup/create_boxで床を生成してください）","color":"red"}]
-bossbar set minecraft:block_gauge name [{"text":"ブロックゲージ: 未設定（setup/create_boxで床を生成してください）","color":"red"}]
+# setup/detect_boxの壁探索で使う最大探索距離（この距離内に壁が見つからなければ探索失敗とする）
+scoreboard players set #probe_max penalty 128
+
+bossbar set minecraft:hp_gauge name [{"text":"床HP: 未設定（setup/create_box または setup/detect_box で範囲を設定してください）","color":"red"}]
+bossbar set minecraft:block_gauge name [{"text":"ブロックゲージ: 未設定（setup/create_box または setup/detect_box で範囲を設定してください）","color":"red"}]
