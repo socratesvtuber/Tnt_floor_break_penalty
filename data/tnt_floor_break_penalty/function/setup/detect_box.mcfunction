@@ -10,13 +10,18 @@ execute store result score #origin_y penalty run data get entity @s Pos[1] 1
 scoreboard players remove #origin_y penalty 1
 execute store result score #origin_z penalty run data get entity @s Pos[2] 1
 
+# 壁探索は床の1つ上(プレイヤーが実際に立っている空気の階層)で行う
+# （床ブロック自体の高さで探索すると、床が空気でないため探索開始直後に壁と誤判定してしまう）
+scoreboard players operation #probe_y_level penalty = #origin_y penalty
+scoreboard players add #probe_y_level penalty 1
+
 scoreboard players set #probe_ok penalty 1
 
 # +X方向(東)を探索 → x2
 data modify storage tnt_floor_break_penalty:probe dx set value 1
 data modify storage tnt_floor_break_penalty:probe dz set value 0
 execute store result storage tnt_floor_break_penalty:probe x int 1 run scoreboard players get #origin_x penalty
-execute store result storage tnt_floor_break_penalty:probe y int 1 run scoreboard players get #origin_y penalty
+execute store result storage tnt_floor_break_penalty:probe y int 1 run scoreboard players get #probe_y_level penalty
 execute store result storage tnt_floor_break_penalty:probe z int 1 run scoreboard players get #origin_z penalty
 execute store result storage tnt_floor_break_penalty:probe remaining int 1 run scoreboard players get #probe_max penalty
 execute if score #probe_ok penalty matches 1 run function tnt_floor_break_penalty:internal/probe with storage tnt_floor_break_penalty:probe
@@ -26,7 +31,7 @@ execute if score #probe_ok penalty matches 1 run execute store result score #x2 
 data modify storage tnt_floor_break_penalty:probe dx set value -1
 data modify storage tnt_floor_break_penalty:probe dz set value 0
 execute store result storage tnt_floor_break_penalty:probe x int 1 run scoreboard players get #origin_x penalty
-execute store result storage tnt_floor_break_penalty:probe y int 1 run scoreboard players get #origin_y penalty
+execute store result storage tnt_floor_break_penalty:probe y int 1 run scoreboard players get #probe_y_level penalty
 execute store result storage tnt_floor_break_penalty:probe z int 1 run scoreboard players get #origin_z penalty
 execute store result storage tnt_floor_break_penalty:probe remaining int 1 run scoreboard players get #probe_max penalty
 execute if score #probe_ok penalty matches 1 run function tnt_floor_break_penalty:internal/probe with storage tnt_floor_break_penalty:probe
@@ -36,7 +41,7 @@ execute if score #probe_ok penalty matches 1 run execute store result score #x1 
 data modify storage tnt_floor_break_penalty:probe dx set value 0
 data modify storage tnt_floor_break_penalty:probe dz set value 1
 execute store result storage tnt_floor_break_penalty:probe x int 1 run scoreboard players get #origin_x penalty
-execute store result storage tnt_floor_break_penalty:probe y int 1 run scoreboard players get #origin_y penalty
+execute store result storage tnt_floor_break_penalty:probe y int 1 run scoreboard players get #probe_y_level penalty
 execute store result storage tnt_floor_break_penalty:probe z int 1 run scoreboard players get #origin_z penalty
 execute store result storage tnt_floor_break_penalty:probe remaining int 1 run scoreboard players get #probe_max penalty
 execute if score #probe_ok penalty matches 1 run function tnt_floor_break_penalty:internal/probe with storage tnt_floor_break_penalty:probe
@@ -46,7 +51,7 @@ execute if score #probe_ok penalty matches 1 run execute store result score #z2 
 data modify storage tnt_floor_break_penalty:probe dx set value 0
 data modify storage tnt_floor_break_penalty:probe dz set value -1
 execute store result storage tnt_floor_break_penalty:probe x int 1 run scoreboard players get #origin_x penalty
-execute store result storage tnt_floor_break_penalty:probe y int 1 run scoreboard players get #origin_y penalty
+execute store result storage tnt_floor_break_penalty:probe y int 1 run scoreboard players get #probe_y_level penalty
 execute store result storage tnt_floor_break_penalty:probe z int 1 run scoreboard players get #origin_z penalty
 execute store result storage tnt_floor_break_penalty:probe remaining int 1 run scoreboard players get #probe_max penalty
 execute if score #probe_ok penalty matches 1 run function tnt_floor_break_penalty:internal/probe with storage tnt_floor_break_penalty:probe
