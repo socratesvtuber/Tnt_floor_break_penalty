@@ -1,6 +1,6 @@
 # Tnt_floor_break_penalty
 
-妨害マイクラ用のデータパック。範囲内でTNTが爆発するたびに床HPをボスバーで表示し、爆発回数が指定したしきい値に達すると床HPが0%になる。あわせて、床を除いた内部空間にどれだけブロックが積まれているか(埋め立て度)を示す「ブロックゲージ」も表示できる。StreamToEarnのオーバーレイと連動して自動で「-1 Win」にする想定(連携部分は未実装)。
+妨害マイクラ用のデータパック。範囲内でTNTが爆発するたびに床HPをボスバーで表示し、爆発回数が指定したしきい値に達すると床HPが0%になる。あわせて、箱全体にどれだけブロックが積まれているか(埋め立て度)を示す「ブロックゲージ」も表示できる。StreamToEarnのオーバーレイと連動して自動で「-1 Win」にする想定(連携部分は未実装。床HPが0になった時点では画面表示で手動対応を促す)。
 
 床HPの判定はTNTエンティティの消滅(=起爆)そのものを検知する方式のため、`/gamerule mobGriefing false`でブロック破壊が無効化されたサーバーでも動作する。
 
@@ -13,7 +13,9 @@
 - **床HPゲージ**: 画面上部のボスバーで%表示。100%は緑、減っていくと黄色→赤へ段階的に色が変わる(100-67%:緑 / 66-34%:黄 / 33-0%:赤)
 - **カウント方式**: 範囲(箱全体)内で起爆したTNTの数をそのままカウント。ブロック破壊の有無を見ていないため、`mobGriefing`の設定に関係なく動作する
 - **しきい値**: 「何回爆発したらHP0になるか」はコマンドで指定可能(デフォルト50回)
-- **ブロックゲージ**: 床HPゲージとは別に、床を除いた内部空間(床の1つ上〜天井)にどれだけブロックが積まれているか(埋め立て度)をもう1本のボスバーで表示。床自体は「埋まっているブロック」としてカウントしない。高さ1の箱(内部空間が無い)の場合は「対象外」表示になる
+- **爆発回数の表示**: 「現在の爆発回数(10秒後の自動リセットで0に戻る)」と「総爆発回数(リセットされない累計値)」の両方をボスバーに表示
+- **HP0時の自動リセット**: 床HPが0%になると、画面に「Win数をマイナス1してください」と表示。10秒後に現在の爆発回数だけが自動で0にリセットされ、床HPは100%に復帰する(総爆発回数は減らない)
+- **ブロックゲージ**: 床HPゲージとは別に、箱全体(床を含む)にどれだけブロックが積まれているか(埋め立て度)をもう1本のボスバーで表示。床は最初から埋まっている扱いになる(空の箱でも0%にはならない)
 - **表示ON/OFF**: 床HPゲージ・ブロックゲージそれぞれ、独立してコマンドで表示/非表示を切り替え可能
 
 ## 構成
@@ -23,20 +25,20 @@
 - `data/tnt_floor_break_penalty/function/load/main.mcfunction` — スコアボード・ボスバーの初期化
 - `data/tnt_floor_break_penalty/function/setup/create_box.mcfunction` — 立っている場所を起点に、指定サイズ・指定ブロックで床を自動生成し、範囲確定・基準値記録・監視開始まで行う
 - `data/tnt_floor_break_penalty/function/setup/detect_box.mcfunction` — 既存の埋め立て用ボックスの内部から東西南北へ壁を自動探索して範囲を検出し、範囲確定・基準値記録・監視開始まで行う
-- `data/tnt_floor_break_penalty/function/setup/calc_max_space.mcfunction` — 2点から範囲の合計マス数を計算し、「内部空間(床を除いた上部、ブロックゲージ用)」の範囲・容量と、「箱全体(TNT検知用)」のセレクタ範囲を算出して保存する内部処理
-- `data/tnt_floor_break_penalty/function/setup/record_baseline.mcfunction` — TNT追跡タグ・爆発回数カウントをリセットし、両ゲージを初期表示にする内部処理
+- `data/tnt_floor_break_penalty/function/setup/calc_max_space.mcfunction` — 2点から範囲の合計マス数(ブロックゲージ用)と、TNT検知用のセレクタ範囲(dx/dy/dz)を算出して保存する内部処理
+- `data/tnt_floor_break_penalty/function/setup/record_baseline.mcfunction` — TNT追跡タグ・爆発回数カウント(現在値・累計とも)をリセットし、両ゲージを初期表示にする内部処理
 - `data/tnt_floor_break_penalty/function/setup/set_max_hits.mcfunction` — 「何回爆発したらHP0になるか」のしきい値を設定する
 - `data/tnt_floor_break_penalty/function/setup/hp_gauge_show.mcfunction` / `hp_gauge_hide.mcfunction` — 床HPゲージの表示ON/OFF
 - `data/tnt_floor_break_penalty/function/setup/block_gauge_show.mcfunction` / `block_gauge_hide.mcfunction` — ブロックゲージの表示ON/OFF
 - `data/tnt_floor_break_penalty/function/internal/fill_box.mcfunction` — 起点からの相対座標・指定ブロックで実際に床を塗りつぶす内部処理
 - `data/tnt_floor_break_penalty/function/internal/count_air.mcfunction` — 範囲内の空気ブロック数を数える共通処理(マクロ経由で座標を利用)
 - `data/tnt_floor_break_penalty/function/internal/probe.mcfunction` / `probe_advance.mcfunction` / `probe_hit.mcfunction` / `probe_timeout.mcfunction` — `detect_box`が使う、1方向へ1マスずつ進みながら壁(空気以外のブロック)を探す再帰処理一式
-- `data/tnt_floor_break_penalty/function/tick/main.mcfunction` — 毎tick、範囲が設定済みならTNT爆発回数の検知と内部空間の空気ブロック数の再計算を行い、両ゲージを更新
-- `data/tnt_floor_break_penalty/function/tick/track_tnt.mcfunction` — 範囲内のTNTエンティティにタグを付けて追跡し、消滅(=爆発)した数を爆発回数へ積算する
+- `data/tnt_floor_break_penalty/function/tick/main.mcfunction` — 毎tick、範囲が設定済みならTNT爆発回数の検知と箱全体の空気ブロック数の再計算を行い、両ゲージを更新
+- `data/tnt_floor_break_penalty/function/tick/track_tnt.mcfunction` — 範囲内のTNTエンティティにタグを付けて追跡し、消滅(=爆発)した数を現在の爆発回数・総爆発回数へ積算する
 - `data/tnt_floor_break_penalty/function/tick/update_gauge.mcfunction` — 残りHP%を計算し、床HPゲージの表示・色を更新
-- `data/tnt_floor_break_penalty/function/tick/update_block_gauge.mcfunction` — 内部空間の埋め立て度を計算し、ブロックゲージの表示を更新
-- `data/tnt_floor_break_penalty/function/tick/update_block_gauge_na.mcfunction` — 内部空間が無い(高さ1の)箱の場合に、ブロックゲージを「対象外」表示にする
-- `data/tnt_floor_break_penalty/function/tick/on_zero.mcfunction` — HPが0になった瞬間に一度だけ発火する処理(現状はアナウンスのみ、-1Win連携はTODO)
+- `data/tnt_floor_break_penalty/function/tick/update_block_gauge.mcfunction` — 箱全体の埋め立て度を計算し、ブロックゲージの表示を更新
+- `data/tnt_floor_break_penalty/function/tick/on_zero.mcfunction` — HPが0になった瞬間に一度だけ発火する処理。「Win数をマイナス1してください」を画面表示し、10秒後の自動リセットを予約する(-1Winの自動連携はTODO)
+- `data/tnt_floor_break_penalty/function/tick/reset_after_zero.mcfunction` — HPが0になってから10秒後に自動で呼ばれ、現在の爆発回数と床HPを100%にリセットする(総爆発回数はリセットしない)
 
 ## 使い方
 
@@ -58,7 +60,7 @@
 
    → 実行したプレイヤーの足元を起点に、指定サイズ・指定ブロックで床が自動生成されます。同時に範囲が確定し、ボスバーに「床HP: 100%」が表示され監視が始まります。
 
-4. 以降、範囲内でTNTが爆発するたびに爆発回数に応じて床HPゲージが自動で更新されます(ブロックが実際に壊れるかどうかは関係ありません)。しきい値に達すると0%になり、画面にタイトル表示とアナウンスが出ます。ブロックゲージは、床を除いた内部空間にブロックが積まれるたびに更新されます。
+4. 以降、範囲内でTNTが爆発するたびに爆発回数に応じて床HPゲージが自動で更新されます(ブロックが実際に壊れるかどうかは関係ありません)。しきい値に達すると床HPが0%になり、「Win数をマイナス1してください」という表示が出ます。**10秒後に現在の爆発回数だけが自動で0にリセットされ、床HPは100%に復帰します**(総爆発回数はリセットされず増え続けます)。ブロックゲージは、箱全体にブロックが積まれるたびに更新されます。
 
 ### 既存の埋め立て用ボックスを使う場合(create_boxの代わり)
 
@@ -92,7 +94,7 @@
 
 ## 今後の検討事項
 
-- **StreamToEarn連携**: `tick/on_zero.mcfunction` 内にTODOとして残してある。スコアボードの値をどう外部(オーバーレイ)に渡すか(ログ出力 / RCON / WebSocket / ファイル書き出し等)は、StreamToEarn側の入力仕様を確認して決める
+- **StreamToEarn連携**: `tick/on_zero.mcfunction` 内にTODOとして残してある。現状は床HPが0になった瞬間に画面表示で手動対応(Win数を-1)を促すのみ。自動反映するには、スコアボードの値をどう外部(オーバーレイ)に渡すか(ログ出力 / RCON / WebSocket / ファイル書き出し等)を、StreamToEarn側の入力仕様を確認して決める必要がある
 - **TNTの誤検知**: 爆発せず範囲外へ転がり出たTNTも、まれに「爆発した」とカウントされる可能性がある(範囲内でのTNT数の減少を爆発とみなす簡易的な方式のため)
 - **やり直し**: 床を作り直して爆発回数をリセットしたい場合は `create_box` または `detect_box` の再実行が必要
 - **複数の床(箱)の保存/切り替え**: `umitate_gauge` にある `save_box` / `load_box` のような複数範囲の保存機能は、必要になれば追加する

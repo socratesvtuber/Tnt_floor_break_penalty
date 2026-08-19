@@ -11,8 +11,10 @@ $execute as @e[type=minecraft:tnt,tag=tfp_tracked,x=$(x1),y=$(y1),z=$(z1),dx=$(d
 
 # 3. 前回より減っていれば、その差分だけ爆発した(=範囲外に消えた)とみなしてカウントする
 # （TNTが爆発せず範囲の外へ転がり出た場合も稀に誤カウントし得るが、簡易的にこの方式とする）
+# #brokenは10秒後の自動リセットで0に戻る「現在の爆発回数」、#total_explosionsはリセットされない累計値
 scoreboard players operation #tnt_diff penalty = #tnt_prev penalty
 scoreboard players operation #tnt_diff penalty -= #tnt_current penalty
 execute if score #tnt_diff penalty matches 1.. run scoreboard players operation #broken penalty += #tnt_diff penalty
+execute if score #tnt_diff penalty matches 1.. run scoreboard players operation #total_explosions penalty += #tnt_diff penalty
 
 scoreboard players operation #tnt_prev penalty = #tnt_current penalty

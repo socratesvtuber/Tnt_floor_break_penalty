@@ -26,7 +26,9 @@ scoreboard players set #z2 penalty 0
 scoreboard players set #max_space penalty 1
 
 # HP計算用（範囲内でのTNT爆発回数としきい値。しきい値はデフォルト50回で、setup/set_max_hitsで変更可能）
+# #brokenは10秒後の自動リセットで0に戻る「現在の爆発回数」、#total_explosionsはリセットされない累計値
 scoreboard players set #broken penalty 0
+scoreboard players set #total_explosions penalty 0
 scoreboard players set #max_hits penalty 50
 scoreboard players set #triggered penalty 0
 
@@ -34,10 +36,9 @@ scoreboard players set #triggered penalty 0
 scoreboard players set #tnt_current penalty 0
 scoreboard players set #tnt_prev penalty 0
 
-# ブロックゲージ計算用（床を除いた内部空間で、埋まっているブロック数の割合＝埋め立て度）
+# ブロックゲージ計算用（箱全体で、埋まっているブロック数の割合＝埋め立て度。床も埋まっている扱い）
 scoreboard players set #filled penalty 0
 scoreboard players set #block_percent penalty 0
-scoreboard players set #interior_space penalty 0
 
 # 各ゲージの表示ON/OFF状態（0=非表示 / 1=表示。デフォルトは両方表示）
 scoreboard players set #hp_gauge_visible penalty 1

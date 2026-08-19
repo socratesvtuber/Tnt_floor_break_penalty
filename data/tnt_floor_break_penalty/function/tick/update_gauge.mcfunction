@@ -20,7 +20,7 @@ execute if score #percent penalty matches 34..66 run bossbar set minecraft:hp_ga
 execute if score #percent penalty matches ..33 run bossbar set minecraft:hp_gauge color red
 
 # 表示テキストを更新
-bossbar set minecraft:hp_gauge name [{"text":"床HP: "},{"score":{"name":"#percent","objective":"penalty"},"color":"gold"},{"text":"% （爆発回数: "},{"score":{"name":"#broken","objective":"penalty"}},{"text":" / "},{"score":{"name":"#max_hits","objective":"penalty"}},{"text":"）"}]
+bossbar set minecraft:hp_gauge name [{"text":"床HP: "},{"score":{"name":"#percent","objective":"penalty"},"color":"gold"},{"text":"% （爆発回数: "},{"score":{"name":"#broken","objective":"penalty"}},{"text":" / "},{"score":{"name":"#max_hits","objective":"penalty"}},{"text":" ・ 総爆発回数: "},{"score":{"name":"#total_explosions","objective":"penalty"},"color":"aqua"},{"text":"）"}]
 
 # HPが0になった瞬間に一度だけ発火
 execute if score #percent penalty matches 0 if score #triggered penalty matches 0 run function tnt_floor_break_penalty:tick/on_zero
