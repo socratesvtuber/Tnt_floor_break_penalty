@@ -1,3 +1,6 @@
+# 表示ON/OFF状態を反映（ONの間は毎tick再表示し、新規参加者にも見えるようにする）
+execute if score #hp_gauge_visible penalty matches 1 run bossbar set minecraft:hp_gauge players @a
+
 # 残りHP = しきい値 − 壊れたブロック数（0未満は0にクランプ）
 scoreboard players operation #remaining penalty = #max_hits penalty
 scoreboard players operation #remaining penalty -= #broken penalty

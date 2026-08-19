@@ -1,8 +1,13 @@
 # スコアボードとボスバーの初期化
 scoreboard objectives add penalty dummy
+
 bossbar add hp_gauge "床HP"
 bossbar set minecraft:hp_gauge color green
 bossbar set minecraft:hp_gauge players @a
+
+bossbar add block_gauge "ブロックゲージ"
+bossbar set minecraft:block_gauge color blue
+bossbar set minecraft:block_gauge players @a
 
 # 計算用の固定数値
 scoreboard players set #100 penalty 100
@@ -26,4 +31,13 @@ scoreboard players set #broken penalty 0
 scoreboard players set #max_hits penalty 50
 scoreboard players set #triggered penalty 0
 
-bossbar set minecraft:hp_gauge name [{"text":"床HP: 未設定（setup/set_corner1 と setup/set_corner2 で範囲を設定してください）","color":"red"}]
+# ブロックゲージ計算用（範囲内で埋まっている＝壊れていないブロック数の割合）
+scoreboard players set #filled penalty 0
+scoreboard players set #block_percent penalty 0
+
+# 各ゲージの表示ON/OFF状態（0=非表示 / 1=表示。デフォルトは両方表示）
+scoreboard players set #hp_gauge_visible penalty 1
+scoreboard players set #block_gauge_visible penalty 1
+
+bossbar set minecraft:hp_gauge name [{"text":"床HP: 未設定（setup/create_boxで床を生成してください）","color":"red"}]
+bossbar set minecraft:block_gauge name [{"text":"ブロックゲージ: 未設定（setup/create_boxで床を生成してください）","color":"red"}]

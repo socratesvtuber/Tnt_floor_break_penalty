@@ -7,3 +7,4 @@ scoreboard players set #broken penalty 0
 scoreboard players set #triggered penalty 0
 
 function tnt_floor_break_penalty:tick/update_gauge
+function tnt_floor_break_penalty:tick/update_block_gauge

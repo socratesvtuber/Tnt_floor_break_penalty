@@ -1,15 +1,17 @@
 # Tnt_floor_break_penalty
 
-妨害マイクラ用のデータパック。TNTで床(ゆか)が爆風に晒されるたびに床HPをボスバーで表示し、壊れたブロック数が指定したしきい値に達すると床HPが0%になる。StreamToEarnのオーバーレイと連動して自動で「-1 Win」にする想定(連携部分は未実装)。
+妨害マイクラ用のデータパック。TNTで床(ゆか)が爆風に晒されるたびに床HPをボスバーで表示し、壊れたブロック数が指定したしきい値に達すると床HPが0%になる。あわせて、床の範囲内に残っているブロックの割合を示す「ブロックゲージ」も表示できる。StreamToEarnのオーバーレイと連動して自動で「-1 Win」にする想定(連携部分は未実装)。
 
 ## 仕様
 
 - **床(箱)の自動生成**: コマンド1つで、実行したプレイヤーの足元を基準に指定サイズ・指定ブロックの床を自動生成し、そのまま監視範囲として設定する
 - **サイズ指定**: 横(x)・高さ(y)・縦(z)をコマンドの引数で指定
 - **素材ブロック指定**: 床を構成するブロックの種類も引数で任意に指定可能(例: `minecraft:stone`)
-- **HP表示**: 画面上部のボスバーで%表示。100%は緑、減っていくと黄色→赤へ段階的に色が変わる(100-67%:緑 / 66-34%:黄 / 33-0%:赤)
+- **床HPゲージ**: 画面上部のボスバーで%表示。100%は緑、減っていくと黄色→赤へ段階的に色が変わる(100-67%:緑 / 66-34%:黄 / 33-0%:赤)
 - **カウント方式**: 範囲内で壊れたブロック数をそのままカウント。1回のTNT爆発で複数ブロック壊れれば、その分まとめて減る
 - **しきい値**: 「何個壊れたらHP0になるか」はコマンドで指定可能(デフォルト50個)
+- **ブロックゲージ**: 床HPゲージとは別に、範囲内に残っている(壊れていない)ブロックの割合をもう1本のボスバーで表示。`create_box`で座標を自動取得するのと同じ範囲をそのまま使うので追加設定は不要
+- **表示ON/OFF**: 床HPゲージ・ブロックゲージそれぞれ、独立してコマンドで表示/非表示を切り替え可能
 
 ## 構成
 
@@ -20,10 +22,13 @@
 - `data/tnt_floor_break_penalty/function/setup/calc_max_space.mcfunction` — 2点から範囲の合計マス数を計算する内部処理
 - `data/tnt_floor_break_penalty/function/setup/record_baseline.mcfunction` — 範囲確定時点の空気ブロック数を基準値として記録し、破壊カウント・ゲージをリセットする内部処理
 - `data/tnt_floor_break_penalty/function/setup/set_max_hits.mcfunction` — 「何個壊れたらHP0になるか」のしきい値を設定する
+- `data/tnt_floor_break_penalty/function/setup/hp_gauge_show.mcfunction` / `hp_gauge_hide.mcfunction` — 床HPゲージの表示ON/OFF
+- `data/tnt_floor_break_penalty/function/setup/block_gauge_show.mcfunction` / `block_gauge_hide.mcfunction` — ブロックゲージの表示ON/OFF
 - `data/tnt_floor_break_penalty/function/internal/fill_box.mcfunction` — 起点からの相対座標・指定ブロックで実際に床を塗りつぶす内部処理
 - `data/tnt_floor_break_penalty/function/internal/count_air.mcfunction` — 範囲内の空気ブロック数を数える共通処理(マクロ経由で座標を利用)
-- `data/tnt_floor_break_penalty/function/tick/main.mcfunction` — 毎tick、範囲が設定済みなら壊れたブロック数を再計算しゲージを更新
-- `data/tnt_floor_break_penalty/function/tick/update_gauge.mcfunction` — 残りHP%を計算し、ボスバーの表示・色を更新
+- `data/tnt_floor_break_penalty/function/tick/main.mcfunction` — 毎tick、範囲が設定済みなら壊れたブロック数を再計算し両ゲージを更新
+- `data/tnt_floor_break_penalty/function/tick/update_gauge.mcfunction` — 残りHP%を計算し、床HPゲージの表示・色を更新
+- `data/tnt_floor_break_penalty/function/tick/update_block_gauge.mcfunction` — 範囲内の残存ブロック割合を計算し、ブロックゲージの表示を更新
 - `data/tnt_floor_break_penalty/function/tick/on_zero.mcfunction` — HPが0になった瞬間に一度だけ発火する処理(現状はアナウンスのみ、-1Win連携はTODO)
 
 ## 使い方
@@ -46,7 +51,18 @@
 
    → 実行したプレイヤーの足元を起点に、指定サイズ・指定ブロックで床が自動生成されます。同時に範囲が確定し、生成直後(壊れていない状態)を基準値として記録、ボスバーに「床HP: 100%」が表示され監視が始まります。
 
-4. 以降、範囲内でTNTが爆発してブロックが壊れるたびに、壊れたブロック数に応じて床HPが自動で減っていきます。しきい値に達すると0%になり、画面にタイトル表示とアナウンスが出ます。
+4. 以降、範囲内でTNTが爆発してブロックが壊れるたびに、壊れたブロック数に応じて床HPゲージ・ブロックゲージの両方が自動で更新されます。床HPはしきい値に達すると0%になり、画面にタイトル表示とアナウンスが出ます。
+
+### ゲージの表示ON/OFF
+
+必要に応じて、床HPゲージ・ブロックゲージをそれぞれ独立して表示/非表示にできます(デフォルトは両方表示)。
+
+```
+/function tnt_floor_break_penalty:setup/hp_gauge_hide
+/function tnt_floor_break_penalty:setup/hp_gauge_show
+/function tnt_floor_break_penalty:setup/block_gauge_hide
+/function tnt_floor_break_penalty:setup/block_gauge_show
+```
 
 ※ 座標はコマンド実行時のプレイヤーの足元位置から自動取得します(Y座標は「乗っているブロックの1つ上」になる分を自動補正)。作り直したい場合は、別の場所であらためて `create_box` を実行すれば、範囲・基準値ともに新しい床のものに上書きされます(古い床のブロックはそのまま残るので、不要なら手動で削除してください)。
 
