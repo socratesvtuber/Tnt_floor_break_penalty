@@ -2,7 +2,6 @@
 # 現状は画面表示で手動対応を促し、10秒後に自動でゲージをリセットする）
 scoreboard players set #triggered penalty 1
 title @a title [{"text":"床崩壊！","color":"red","bold":true}]
-title @a subtitle [{"text":"Win数をマイナス1してください","color":"gold","bold":true}]
 tellraw @a [{"text":"[TNT床HP] 床のHPが0になりました。Win数をマイナス1してください","color":"red"}]
 # TODO: StreamToEarnオーバーレイへ-1Winを自動で通知する処理をここに追加
 
