@@ -12,8 +12,8 @@
 - **既存の埋め立て用ボックスの自動検出**: 既に埋め立て用ボックス(4方向を壁で囲まれた箱)の内部にプレイヤーが立っている場合、コマンド1つで壁の座標を自動探索し、その範囲をブロックゲージ・床HPゲージ両方の監視範囲としてまとめてセットアップできる(新規に床を生成する`create_box`とは別の入口)
 - **床HPゲージ**: 画面上部のボスバーで%表示。100%は緑、減っていくと黄色→赤へ段階的に色が変わる(100-67%:緑 / 66-34%:黄 / 33-0%:赤)
 - **カウント方式**: 範囲(箱全体)内で起爆したTNTの数をそのままカウント。ブロック破壊の有無を見ていないため、`mobGriefing`の設定に関係なく動作する
-- **しきい値**: 「何回爆発したらHP0になるか」はコマンドで指定可能(デフォルト50回)
-- **爆発回数の表示**: 「現在の爆発回数(10秒後の自動リセットで0に戻る)」と「総爆発回数(リセットされない累計値)」の両方をボスバーに表示
+- **しきい値**: 「何回爆発したらHP0になるか」はコマンドで指定可能(デフォルト50回)。現在のしきい値はコマンドで確認可能
+- **床HPゲージの表示詳細度**: 「床HP%のみ」のシンプル表示と、「爆発回数・しきい値・総爆発回数」まで表示する詳細表示をコマンドで切り替え可能(デフォルトはシンプル表示)
 - **HP0時の自動リセット**: 床HPが0%になると、画面に「Win数をマイナス1してください」と表示。10秒後に現在の爆発回数だけが自動で0にリセットされ、床HPは100%に復帰する(総爆発回数は減らない)
 - **ブロックゲージ**: 床HPゲージとは別に、床を除いた内部空間(床の1つ上〜天井)にどれだけブロックが積まれているか(埋め立て度)をもう1本のボスバーで表示。床自体は「埋まっているブロック」としてカウントしない(空の箱は0%)。内部空間が無い(高さ1の)箱の場合は「対象外」表示になる
 - **表示ON/OFF**: 床HPゲージ・ブロックゲージそれぞれ、独立してコマンドで表示/非表示を切り替え可能
@@ -28,7 +28,9 @@
 - `data/tnt_floor_break_penalty/function/setup/calc_max_space.mcfunction` — 2点から範囲の合計マス数(参考表示用)、「内部空間(床を除いた上部、ブロックゲージ用)」の範囲・容量、TNT検知用のセレクタ範囲(dx/dy/dz)を算出して保存する内部処理
 - `data/tnt_floor_break_penalty/function/setup/record_baseline.mcfunction` — TNT追跡タグ・爆発回数カウント(現在値・累計とも)をリセットし、両ゲージを初期表示にする内部処理
 - `data/tnt_floor_break_penalty/function/setup/set_max_hits.mcfunction` — 「何回爆発したらHP0になるか」のしきい値を設定する
+- `data/tnt_floor_break_penalty/function/setup/show_max_hits.mcfunction` — 現在のTNT爆発リミット(しきい値)をチャットに表示する
 - `data/tnt_floor_break_penalty/function/setup/hp_gauge_show.mcfunction` / `hp_gauge_hide.mcfunction` — 床HPゲージの表示ON/OFF
+- `data/tnt_floor_break_penalty/function/setup/hp_gauge_detail_on.mcfunction` / `hp_gauge_detail_off.mcfunction` — 床HPゲージの表示を「詳細表示(爆発回数・しきい値・総爆発回数も表示)」/「シンプル表示(床HP%のみ)」に切り替える
 - `data/tnt_floor_break_penalty/function/setup/block_gauge_show.mcfunction` / `block_gauge_hide.mcfunction` — ブロックゲージの表示ON/OFF
 - `data/tnt_floor_break_penalty/function/internal/fill_box.mcfunction` — 起点からの相対座標・指定ブロックで実際に床を塗りつぶす内部処理
 - `data/tnt_floor_break_penalty/function/internal/count_air.mcfunction` — 範囲内の空気ブロック数を数える共通処理(マクロ経由で座標を利用)
@@ -48,6 +50,12 @@
 
    ```
    /function tnt_floor_break_penalty:setup/set_max_hits {count:50}
+   ```
+
+   現在設定されているしきい値は、いつでも次のコマンドで確認できます。
+
+   ```
+   /function tnt_floor_break_penalty:setup/show_max_hits
    ```
 
 3. 床を生成したい場所(1つ目の角にしたいブロックの**真上**)に立って、サイズと素材ブロックを指定して実行
@@ -85,6 +93,18 @@
 /function tnt_floor_break_penalty:setup/block_gauge_hide
 /function tnt_floor_break_penalty:setup/block_gauge_show
 ```
+
+### 床HPゲージの表示詳細度の切り替え
+
+床HPゲージのテキストは、デフォルトでは「床HP: 80%」のようなシンプル表示です。爆発回数・しきい値・総爆発回数まで表示する詳細表示にも切り替えられます。
+
+```
+/function tnt_floor_break_penalty:setup/hp_gauge_detail_on
+/function tnt_floor_break_penalty:setup/hp_gauge_detail_off
+```
+
+- `hp_gauge_detail_on` → 「床HP: 80% （爆発回数: 10 / 50 ・ 総爆発回数: 37）」のように詳細表示
+- `hp_gauge_detail_off` → 「床HP: 80%」のみのシンプル表示(デフォルト)
 
 ※ 座標はコマンド実行時のプレイヤーの足元位置から自動取得します(Y座標は「乗っているブロックの1つ上」になる分を自動補正)。作り直したい場合は、別の場所であらためて `create_box` を実行すれば、範囲・基準値ともに新しい床のものに上書きされます(古い床のブロックはそのまま残るので、不要なら手動で削除してください)。
 

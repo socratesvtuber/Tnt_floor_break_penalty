@@ -45,6 +45,9 @@ scoreboard players set #interior_space penalty 0
 scoreboard players set #hp_gauge_visible penalty 1
 scoreboard players set #block_gauge_visible penalty 1
 
+# 床HPゲージの詳細表示状態（0=床HP%のみ / 1=爆発回数・しきい値・総爆発回数も表示。デフォルトはシンプル表示）
+scoreboard players set #hp_gauge_detail penalty 0
+
 # setup/detect_boxの壁探索で使う最大探索距離（この距離内に壁が見つからなければ探索失敗とする）
 scoreboard players set #probe_max penalty 128
 
